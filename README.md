@@ -36,7 +36,7 @@ git clone git@github.com:OpenBeta/open-tacos.git
 
 2.  Build the code
 ```
-cd open-tacos
+# cd open-tacos
 yarn install
 ```
 
