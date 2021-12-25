@@ -1,6 +1,11 @@
 import React from "react";
 import DeckGL from "@deck.gl/react";
-import { StaticMap } from "react-map-gl";
+import {
+  _MapContext as MapContext,
+  NavigationControl,
+  InteractiveMap,
+} from "react-map-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 export const DEFAULT_INITIAL_VIEWSTATE = {
   width: 300,
@@ -18,9 +23,12 @@ const BaseMap = ({
   disableController,
   viewstate,
   onViewStateChange,
+  getTooltip,
+  children,
 }) => {
   return (
     <DeckGL
+      ContextProvider={MapContext.Provider}
       viewState={viewstate}
       layers={layers}
       controller={
@@ -34,13 +42,22 @@ const BaseMap = ({
           : null
       }
       onViewStateChange={onViewStateChange}
+      getTooltip={getTooltip}
     >
-      <StaticMap
+      <InteractiveMap
         reuseMaps={true}
         preventStyleDiffing={false}
         mapStyle="mapbox://styles/mappandas/ckx1h60kg18rj14nqyup4lzxi"
         mapboxApiAccessToken="pk.eyJ1IjoibWFwcGFuZGFzIiwiYSI6ImNqcDdzbW12aTBvOHAzcW82MGg0ZTRrd3MifQ.MYiNJHklgMkRzapAKuTQNg"
-      />
+      >
+        <NavigationControl
+          className="navigationCtrl"
+          style={{ right: 10, top: 10 }}
+          showCompass={true}
+        />
+      </InteractiveMap>
+
+      {children}
     </DeckGL>
   );
 };
