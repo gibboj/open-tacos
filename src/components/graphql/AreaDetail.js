@@ -9,6 +9,10 @@ export const query = graphql`
       grade
       count
     }
+    typeCount {
+      type
+      count
+    }
     frontmatter {
       area_name
       metadata {

@@ -148,7 +148,12 @@ export default function LeafAreaPage({ data: { area, gisBoundary } }) {
               children={hasChildAreas ? children : []}
               getTooltip={({ object }) =>
                 object && {
-                  text: `${object.frontmatter.area_name}\n${object.frontmatter.metadata.lat}`,
+                  text: `${
+                    object.frontmatter.area_name
+                  }\nTotal Climbs: ${object.typeCount.reduce(
+                    (acc, c) => acc + c.count,
+                    0
+                  )}`,
                   className: "bg-black rounded text-white",
                   style: { color: "", "background-color": "" },
                 }
