@@ -190,6 +190,7 @@ exports.createPages = async ({ graphql, actions, getNode, createNodeId }) => {
             slug
             pathTokens
             rawPath
+            isLeaf
             gradeCount {
               grade
               count
@@ -227,9 +228,10 @@ exports.createPages = async ({ graphql, actions, getNode, createNodeId }) => {
       });
     }
 
+    const template = node.isLeaf ? `leaf` : `edge`;
     createPage({
       path: node.slug,
-      component: path.resolve(`./src/templates/leaf-area-page-md.js`),
+      component: path.resolve(`./src/templates/${template}-area-page-md.js`),
       context: {
         node_id: node.id,
         rawPath: node.rawPath,
@@ -359,23 +361,37 @@ exports.createSchemaCustomization = ({ actions }) => {
 exports.createResolvers = ({ createResolvers }) => {
   const resolvers = {
     Area: {
+      isLeaf: {
+        type: `Boolean`,
+        resolve: async (source, args, context, info) => {
+          const { entries } = await context.nodeModel.findAll({
+            type: "Area",
+          });
+          const areas = entries.filter((area) =>
+            area.slug.includes(source.slug)
+          );
+          return Array.from(areas).length === 1;
+        },
+      },
       gradeCount: {
         type: [`GradeCount`],
         resolve: async (source, args, context, info) => {
           const { entries } = await context.nodeModel.findAll({
             type: "Climb",
           });
+          // find all pages with slug that have this pages slug as a substring
           const climbs = entries.filter((climb) =>
             climb.slug.includes(source.slug)
           );
-          const list = Array.from(climbs).reduce((byYds, climb) => {
+          // Group all climbs by grade
+          const gradeCounts = Array.from(climbs).reduce((byYds, climb) => {
             const index = climb.frontmatter.yds;
             const entry = byYds[index] || { grade: index, count: 0 };
             entry.count = entry.count + 1;
             byYds[index] = entry;
             return byYds;
           }, {});
-          return Object.values(list);
+          return Object.values(gradeCounts);
         },
       },
       typeCount: {
@@ -387,8 +403,10 @@ exports.createResolvers = ({ createResolvers }) => {
           const climbs = entries.filter((climb) =>
             climb.slug.includes(source.slug)
           );
-          const list = Array.from(climbs).reduce(
+          // Group all climbs by grade
+          const typeCount = Array.from(climbs).reduce(
             (byType, { frontmatter: { type } }) => {
+              // sport, trade, boulder...
               for (t in type) {
                 if (type[t]) {
                   const entry = byType[t] || { type: t, count: 0 };
@@ -399,7 +417,7 @@ exports.createResolvers = ({ createResolvers }) => {
             },
             {}
           );
-          return Object.values(list);
+          return Object.values(typeCount);
         },
       },
     },
